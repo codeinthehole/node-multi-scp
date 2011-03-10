@@ -7,7 +7,7 @@ hosts defined in `~/.ssh/config`.
 It is assumed that you have copied your public key to each host within `~/.ssh/config`
 so the copy can take place without a password prompt.
 
-Note that the (`optimise` module)[https://github.com/substack/node-optimist] is a requirement. 
+Note that the [`optimise` module](https://github.com/substack/node-optimist) is a requirement. 
 
 Example usage:
 
