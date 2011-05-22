@@ -2,14 +2,25 @@
 
 var fs = require('fs')
     cp = require('child_process'),
-    op = require('optimist');
+    op = require('optimist'),
+	path = require('path');
 
 var argv = op.usage("Usage: $0 filetosync [remotefilepath]")
              .demandCount(1)
              .argv;
 
 var configFile = process.env['HOME']+'/.ssh/config';
+if (!path.existsSync(configFile)) {
+    console.log("ERROR: '"+configFile+"' does not exist");
+	process.exit(1);
+}
+
 var fileToSync = argv._[0]
+if (!path.existsSync(fileToSync)) {
+    console.log("ERROR: '"+fileToSync+"' does not exist");
+	process.exit(1);
+}
+
 var remotePath = "";
 if (argv._.length >= 2) {
     remotePath = argv._[1]
@@ -17,9 +28,9 @@ if (argv._.length >= 2) {
 
 fs.readFile(configFile, 'utf8', function(err, data) {
     if (err) throw err;
-    var msg = "Starting sync of "+fileToSync+" to all hosts in "+configFile;
+    var msg = "Starting sync of '"+fileToSync+"' to all hosts in "+configFile;
     if (remotePath) {
-        msg += " with final path "+remotePath;
+        msg += " with final path '"+remotePath+"'";
     }
     console.log(msg);
     var lines = data.match(/host\s+[\w-]+/ig);
@@ -27,10 +38,10 @@ fs.readFile(configFile, 'utf8', function(err, data) {
         var host = lines[i].match(/host ([\w-]+)/i)[1];
         (function(hostname) {
             console.log(" -> Copying to "+hostname);
-            var cmd = "scp "+fileToSync+" "+hostname+":"+remotePath;
+            var cmd = "scp -o ConnectTimeout=10 "+fileToSync+" "+hostname+":"+remotePath;
             cp.exec(cmd, function(err, stdout, stderr) {
                 if (err) {
-                    console.log(" *** ERROR: could not copy to "+hostname);
+                    console.log("ERROR: could not copy to "+hostname);
                     console.log(stderr);
                 } else {
                     console.log(" <- Successful copy to "+hostname);
